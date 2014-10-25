@@ -226,4 +226,11 @@ app.get('/moments/share/:momentId', function(req, res) {
 });
 /*-------------------------*/
 
+/*-------- 404 --------*/
+app.get('*', function(req, res) {
+    res.setHeader('Content-Type', 'text/plain');
+    res.end('404 Not found, sorry.');
+});
+/*---------------------*/
+
 app.listen(5000);
