@@ -8,6 +8,7 @@ mongoose = require('mongoose');
 Product = require('./controllers/product.js'),
 Receipe = require('./controllers/receipe.js');
 Ingredient = require('./controllers/ingredient.js');
+User = require('./controllers/user.js');
 mongoose.connect('mongodb://localhost/test_in');
 
 app.use(bodyParser.urlencoded({extended : false }));
@@ -32,5 +33,7 @@ app.get('/ingredients', Ingredient.getAllIngredients);
 app.get('/ingredient/:id', Ingredient.getIngredientById);
 app.get('/ingredient/name/:name', Ingredient.getIngredientByName);
 app.get('/ingredient/:id/values', Ingredient.getIngredientValues);
+
+app.get('/users', User.getAllUsers);
 
 app.listen(4242);

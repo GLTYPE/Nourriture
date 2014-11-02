@@ -180,8 +180,12 @@ app.get('/receipes/suggestion', function(req, res) {
 
 /*-------- INGREDIENTS --------*/
 app.get('/ingredients', function(req, res) {
+    Angular = new Angularjs();
+
+
     res.setHeader('Content-Type', 'text/plain');
-    res.end('As a guest or a user, you\'re listing ingredient');
+    // res.end('As a guest or a user, you\'re listing ingredient');
+    res.end(angular.html());
 });
 
 app.get('/ingredient/create', function(req, res) {
@@ -262,3 +266,8 @@ app.get('*', function(req, res) {
 /*---------------------*/
 
 app.listen(5000);
+
+
+app.get('/faq', function(req, res) {
+    res.end("<html>HI HERE IS THE FAQ</html>");
+});
