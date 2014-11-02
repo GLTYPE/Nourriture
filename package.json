@@ -1,12 +1,13 @@
 {
-  "name": "GLTYPE",
-  "description": "Nourriture group GLTYPE",
-  "version": "0.0.1",
-  "private": true,
-  "dependencies": {
-    "express": "*",
-    "mongoose": "*",
-    "body-parser": "*",
-    "request": "*"
+    "name": "GLTYPE",
+    "description": "Nourriture group GLTYPE",
+    "version": "0.0.1",
+    "private": true,
+    "dependencies": {
+	"express": "*",
+	"mongoose": "*",
+	"body-parser": "*",
+      "request": "*",
+      "angularjs" : "*"
   }
 }
