@@ -1,6 +1,6 @@
 var mongoose = require("mongoose")
 
-mongoose.connect('mongodb://localhost/test_in');
+mongoose.connect('mongodb://localhost/test');
 
 var Ingredient = require('../models/ingredient.js').Ingredient;
 
