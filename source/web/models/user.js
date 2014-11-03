@@ -10,7 +10,8 @@
 var mongoose = require("mongoose");
 
 var UserSchema = new mongoose.Schema({
-    name: String,
+    firstname: String,
+    lastname: String,
     picture: String,
     about: String,
     email: {type : String, unique: true},
@@ -20,6 +21,12 @@ var UserSchema = new mongoose.Schema({
     photos: [mongoose.Schema.Types.ObjectId],
     password: String
 });
+
+UserSchema.methods.toJSON = function() {
+  var obj = this.toObject()
+  delete obj.password
+  return obj
+}
 
 var User = mongoose.model('User', UserSchema);
 

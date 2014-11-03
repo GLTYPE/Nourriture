@@ -1,14 +1,16 @@
 // USER CONTROLLER
 
 var mongoose = require("mongoose")
+var md5 = require('MD5');
 
 exports.createUser = function createUser(req, res) {
-    var User = require('...models/user.js').User({
-	name: req.body.name,
+    var User = require('../models/user.js').User({
+	firstname: req.body.firstname,
+	lastname: req.body.lastname,
 	email: req.body.email,
 	about: req.body.about,
 	role: req.body.role,
-	password: req.body.password
+	password: md5(req.body.password)
     }).save(function(err) {
 	if (err)
 	    res.status(400).send(err);
@@ -17,15 +19,10 @@ exports.createUser = function createUser(req, res) {
     });
 }
 
-exports.getUserByEmail = function getUserByEmail(req, res) {
+exports.getUserByEmail = function getUserByEmail(email, password, callback) {
     var User = require('../models/user.js').User;
 
-    User.findOne({email: req.body.email}, function(err, user) {
-	if (err)
-	    res.status(400).send(err);
-	res.status(200).send(user);
-	res.end();
-    });
+    User.findOne({email: email}, callback);
 }
 
 exports.getAllUsers = function getAllUsers(req, res) {
@@ -34,6 +31,11 @@ exports.getAllUsers = function getAllUsers(req, res) {
     User.find(function(err, user) {
 	if (err)
 	    res.status(400).send(err);
+	// user.forEach(function(element, index, array) {
+	//     console.log(array[index].password);
+	//     delete array[index].password;
+	//     console.log(array[index]);
+	// });
 	res.status(200).send(user);
 	res.end();
     });
