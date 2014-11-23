@@ -1,64 +1,127 @@
 // USER CONTROLLER
 
-var mongoose = require("mongoose")
-var md5 = require('MD5');
+var mongoose = require("mongoose"),
+User = require('../models/user.js').User,
+md5 = require('MD5');
 
 exports.createUser = function createUser(req, res) {
-    var User = require('../models/user.js').User({
+    if (!req.body.firstname || req.body.firstname.length == 0 ||
+    	req.body.firstname.length > 20)
+    	return res.status(400).end("Error firstname (Caracter number must be between 1 and 20)");
+    if (!req.body.lastname || req.body.lastname.length == 0 ||
+    	req.body.lastname.length > 50)
+    	return res.status(400).end("Error lastname (Caracter number must be between 1 and 50)");
+    if (!req.body.email || req.body.email.length == 0 ||
+    	req.body.email.length > 50)
+    	return res.status(400).end("Error email (Caracter number must be between 1 and 50)");
+    if (!req.body.role || parseInt(req.body.role) < 0 || parseInt(req.body.role) > 3)
+    	res.status(400).end("Error role");
+    if (!req.body.password || req.body.password.length < 8 ||
+    	req.body.password.length > 20)
+    	return res.status(400).end("Error password (Caracter number must be between 8 and 20)");
+    var user = User({
 	firstname: req.body.firstname,
 	lastname: req.body.lastname,
 	email: req.body.email,
-	about: req.body.about,
+	about: req.body.about ? req.body.about : "",
 	role: req.body.role,
 	password: md5(req.body.password)
-    }).save(function(err) {
-	if (err)
-	    res.status(400).send(err);
-	res.status(200).send();
-	res.end();
+    });
+    return user.save(function(err) {
+	if (err) {
+	    console.log(err);
+	    return res.status(400).end("Internal error");
+	}
+	return res.status(201).json(user);
     });
 }
 
-exports.getUserByEmail = function getUserByEmail(email, password, callback) {
-    var User = require('../models/user.js').User;
-
-    User.findOne({email: email}, callback);
+exports.getAllUsers = function getAllUsers(req, res) {
+    return User.find(function(err, user) {
+	if (err) {
+	    console.log(err);
+	    return res.status(400).end("Internal error");
+	}
+	return res.status(200).send(user);
+    });
 }
 
-exports.getAllUsers = function getAllUsers(req, res) {
-    var User = require('../models/user.js').User;
-
-    User.find(function(err, user) {
-	if (err)
-	    res.status(400).send(err);
-	// user.forEach(function(element, index, array) {
-	//     console.log(array[index].password);
-	//     delete array[index].password;
-	//     console.log(array[index]);
-	// });
-	res.status(200).send(user);
-	res.end();
+exports.getUserByEmail = function getUserByEmail(req, res) {
+    return User.findOne({email : req.body.email}, function(err, user) {
+	if (err) {
+	    console.log(err);
+	    return res.status(400).end("Internal error");
+	}
+	return res.status(200).send(user);
     });
 }
 
 exports.getUserById = function getUserById(req, res) {
-    var User = require('../models/user.js').User;
-
-    User.findById(req.params.idUser, function(err, user) {
-	if (err)
-	    res.status(400).send(err);
-	res.status(200).send(user);
-	res.end();
+    return User.findById(req.params.id, function(err, user) {
+	if (err) {
+	    console.log(err);
+	    return res.status(400).end("Internal error");
+	}
+	return res.status(200).send(user);
     });
 }
 
 exports.getUserByName = function getUserByName(req, res) {
-    var User = require('../models/user.js').User;
+    return User.find({name: new RegExp(req.params.name, "i")}, function(err, user) {
+	if (err) {
+	    console.log(err);
+	    return res.status(400).end("Internal error");
+	}
+	return res.status(200).send(user);
+    });
+}
 
-    User.find({name: new RegExp(req.params.name, "i")}, function(err, user) {
+exports.connect = function connect(req, res) {
+    return User.findOne({email : req.body.email}, function(err, user) {
+	if (err) {
+	    console.log(err);
+	    return res.status(400).send("Internal error");
+	}
+	else {
+	    if (user.password === md5(req.body.password)) {
+		return res.status(200).json(user);
+	    }
+	    else {
+		return res.status(400).end("Wrong password");
+	    }
+	}
+    });   
+}
+
+exports.editUser = function editUser(req, res) {
+    return User.findById(req.params.id, function(err, user) {
+	if (err) {
+	    console.log(err);
+	    return res.status(400).end("Internal error");
+	}
+	else {
+	    user.lastname = req.body.lastname;
+	    user.firstname = req.body.firstname;	
+	    user.picture = req.body.picture;
+	    user.about = req.body.about;
+	    user.email = req.body.email;
+	    return user.save(function(err) {
+		if (err) {
+		    console.log(err);
+		    return res.status(400).end("Internal error");
+		}
+		else { return res.status(204).end(); }
+	    });
+	}
+    });
+}
+
+exports.getRole = function getRole(id) {
+    return User.findById(id, function(err, user) {
 	if (err)
-	    res.status(400).send(err);
-	res.status(200).send(user);
-	res.end();
+	    return false;
+	if (typeof user.id == 'undefined')
+	    return false;
+	return user.id;
     });
 }

@@ -1,9 +1,13 @@
 var express = require('express'),
 bodyParser = require("body-parser"),
-request = require('request'),
 session = require('express-session'),
-MongoStore = require('connect-mongo')(session);
+MongoStore = require('connect-mongo')(session),
+router = express.Router(),
+cors = require('cors'),
 app = express();
+
+// Cors
+app.use(cors());
 
 // Receive post variable                                                                                     
 app.use(bodyParser.urlencoded({extended : false }));
@@ -18,12 +22,19 @@ app.use(session({
     resave: true
 }));
 
-/*-------- HOME --------*/
-app.get('/', function(req, res) {
-    res.setHeader('Content-Type', 'text/html');
-    res.end('Here\'s home !');
-});
-/*----------------------*/
+// Use javascript file
+app.use(express.static(__dirname));
+
+require('./getRoutes.js')(router, "./routes");
+app.use('/', router);
+
+
+
+
+
+// NOT IMPLEMENTED
+
+
 
 /*-------- SEARCH --------*/
 app.get('/search/:criteria', function(req, res) {
@@ -32,93 +43,42 @@ app.get('/search/:criteria', function(req, res) {
 });
 /*------------------------*/
 
-/*-------- SIGN UP --------*/
-app.get('/signup', function(req, res) {
-    res.setHeader('Content-Type', 'text/html');
-    if (req.session.userId) { res.end("Connected as " + req.session.name); } else {
-	res.end('<html><p>As a guest, you\'re signing up : </p><form action="/signup" method="post">' +
-		'First name: <input type="text" name="firstname"><br>' +
-		'Last name: <input type="text" name="lastname"><br>' +
-		'email: <input type="text" name="email"><br>' +
-		'password: <input type="text" name="password"><br>' +
-		'role: <input type="text" name="role"><br>' +
-		'<input type="submit" value="Submit">' +
-		'</form></html>');
-    }
+app.post('/session', function(req, res) {
+    req.session.name = req.body.name;
+    res.status(204).end();
 });
-
-app.post('/signup', function(req, res) {
-    request.post({
-	url: 'http://localhost:4242/signup',
-	form : {
-    	    firstname : req.body.firstname,
-    	    lastname : req.body.lastname,
-    	    email : req.body.email,
-    	    role : req.body.role,
-    	    password : req.body.password
-	}},
-    		 function (error, response, body) {
-		     if (response.statusCode == 400 || response.statusCode == 201) { res.end(body); }
-		     else { res.end("Internal problem happened"); }
-    		 });
-});
-/*-------------------------*/
-
-/*-------- LOGIN --------*/
-app.get('/login', function(req, res) {
-    res.setHeader('Content-Type', 'text/html');
-    if (req.session.userId) { res.end("Connected as " + req.session.name); } else {
-	res.end('<html><p>As a guest, you\'re logining in : </p><form action="/login" method="post">' +
-		'email: <input type="text" name="email"><br>' +
-		'password: <input type="text" name="password">' +
-		'<input type="submit" value="Submit">' +
-		'</form></html>');
-    }
-});
-
-app.post('/login', function(req, res) {
-    res.setHeader('Content-Type', 'text/html');
-    request.post({
-	url: 'http://localhost:4242/login',
-	form : {
-    	    email : req.body.email,
-    	    password : req.body.password
-	}},
-    		 function (error, response, body) {
-		     if (response.statusCode == 200) {
-			 var user = JSON.parse(body);
-			 req.session.userId = user._id;
-			 req.session.name = user.firstname + user.lastname;
-			 res.redirect("http://localhost:5000/login");
-		     } else if (response.statusCode == 400) { res.end(body); }
-		     else { res.end("Internal problem happened"); }
-    		 });
-});
-/*------------------------*/
-
-/*-------- LOGOUT --------*/
-app.get('/logout', function(req, res) {
-    res.setHeader('Content-Type', 'text/html');
-    // request.post({ url: 'http://localhost:4242/logout'});
-    req.session.destroy(function(err) {
-        if (err)
-            res.end("Internal error");
-        else
-            res.end('As a user, you\'re disconnecting');
-    });
-});
-
-/*-------------------------*/
 
 /*-------- PROFIL --------*/
 app.get('/profil', function(req, res) {
     res.setHeader('Content-Type', 'text/html');
-    res.end('As a user, you\'re looking at your own profil page ');
+    res.end('As a user, you\'re editing your own profil');
 });
 
-app.get('/profil/edit', function(req, res) {
+app.get('/profil/changepassword', function(req, res) {
     res.setHeader('Content-Type', 'text/html');
-    res.end('As a user, you\'re editing your own profil');
+    if (req.session.userId) {
+	res.end('<html><h1>Connected as ' + req.session.name + '</h1><br>' +
+		'<form action="/profil/changepassword" method="post">' +
+		'Password: <input type="text" name="password"><br>' +
+		'New password: <input type="text" name="newPassword">' +
+                '<input type="submit" value="Submit">' +
+                '</form></html>');
+    } else {
+	res.end("<html><h1>You're not connected !</h1></html>");
+    }
+    res.end('As a user, you\'re changing your password');
+});
+
+app.post('/profil/changepassword', function(req, res) {
+    request.post({
+	url: 'http://localhost:4242/user/changepassword',
+	form : {
+    	    password : req.body.password,
+    	    newPassword : req.body.newPassword
+	}},
+    		 function (error, response, body) {
+		     res.redirect("http://localhost:5000/profil/edit");
+    		 });
 });
 /*------------------------*/
 
@@ -133,7 +93,7 @@ app.get('/edit/:idUser', function(req, res) {
 /*-------- PRODUCT --------*/
 app.get('/products', function(req, res) {
     res.setHeader('Content-Type', 'text/html');
-    res.end('As a guest or a user, you\'re listing  products');
+    res.end('<html><body><h1>As a guest or a user, you\'re listing  products</h1></body></html>');
 });
 
 app.get('/product/create', function(req, res) {
